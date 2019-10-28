@@ -27,4 +27,12 @@ public interface OfferDetailRepository extends JpaRepository<OfferDetail, Long> 
 	@Modifying
 	@Query("UPDATE OfferDetail od SET  od.usedGlobalMaxAmount =?1, od.usedCouponCount =?2 WHERE od.couponCode =?3")
 	Integer updateOfferDetail(Double usedGlobalMaxAmnt,Integer usedCouponCount,String couponCode);
+	
+	/**
+	 * 
+	 * @param couponCode
+	 * @return
+	 */
+	OfferDetail findOfferDetailByCouponCode(String couponCode);
+	
 }

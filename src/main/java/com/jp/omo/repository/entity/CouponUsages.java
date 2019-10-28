@@ -48,5 +48,8 @@ public class CouponUsages  implements Serializable {
 	
 	@Column(name = "coupon_id")
 	private Long couponId;
+	                
+	@Column(name = "softdeleteflag")
+	private Byte softDeleteFlag;
 	
 }

@@ -135,4 +135,17 @@ public class OfferServiceImpl implements OfferService {
 	public ModelMapper getModelMapper() {
 		return new ModelMapper();
 	}
+
+
+	@Override
+	@Transactional
+	public void updateCouponOnBookingCancellation(Long bookingId) {
+		CouponUsages cpnUsage = cpnUsgRepository.findCouponUsagesByBookingId(bookingId);
+		OfferDetail offerDetail = offerDetailRepository.findOfferDetailByCouponCode(cpnUsage.getCouponCode());
+		offerDetail.setUsedCouponCount(offerDetail.getUsedCouponCount()-1);
+		offerDetail.setUsedGlobalMaxAmount(offerDetail.getUsedGlobalMaxAmount()-cpnUsage.getDiscountAmount());
+		offerDetailRepository.saveAndFlush(offerDetail);
+		cpnUsage.setSoftDeleteFlag((byte) 1);
+		cpnUsgRepository.save(cpnUsage);
+	}
 }

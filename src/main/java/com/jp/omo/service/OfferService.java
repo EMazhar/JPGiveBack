@@ -25,4 +25,10 @@ public interface OfferService {
 	 * @return status of avail coupon success or Failed
 	 */
 	CouponDetailDto availCouponSaveService(Long userId ,AvailAndSaveCouponUsageDto availAndSaveCpnUsgDto);
+	
+	/**
+	 * 
+	 * @param bookingId
+	 */
+	void updateCouponOnBookingCancellation (Long bookingId);
 }
