@@ -73,4 +73,7 @@ public class OfferDetail implements Serializable {
 	@Column(name = "used_global_max_amount")
 	private Double usedGlobalMaxAmount;
 	
+	@Column(name = "softdeleteflag")
+	private Byte softdeleteflag;
+	
 }

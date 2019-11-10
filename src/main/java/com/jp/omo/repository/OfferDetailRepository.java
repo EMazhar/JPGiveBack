@@ -33,6 +33,7 @@ public interface OfferDetailRepository extends JpaRepository<OfferDetail, Long> 
 	 * @param couponCode
 	 * @return
 	 */
-	OfferDetail findOfferDetailByCouponCode(String couponCode);
+	@Query("SELECT od from OfferDetail od where od.couponCode =?1 AND od.softdeleteflag=0")
+	OfferDetail findOfferDetail(String couponCode);
 	
 }

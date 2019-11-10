@@ -6,7 +6,7 @@ public enum ApplicationConstant {
 	
 	CouponAvailSuccessfull("Successful"),
 	CouponAvailfailed("Failed"),
-	
+	CouponNotAvailable("Unavailable Coupon"),
 	
 	
 	Percentage("1"),

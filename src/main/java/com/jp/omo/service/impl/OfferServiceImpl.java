@@ -42,7 +42,7 @@ public class OfferServiceImpl implements OfferService {
 	public CouponDetailDto validateCouponService(long userId, VerifyCouponDto verifyCouponDto) {
 		CouponDetailDto responseDto = new CouponDetailDto();
 		try {
-			OfferDetail offerDetail = offerDetailRepository.findByCouponCode(verifyCouponDto.getCouponCode());
+			OfferDetail offerDetail = offerDetailRepository.findOfferDetail(verifyCouponDto.getCouponCode());
 			
 			if(offerDetail == null) {
 				throw new Exception("there is no record found in the table with this coupon code "+verifyCouponDto.getCouponCode());
@@ -105,8 +105,11 @@ public class OfferServiceImpl implements OfferService {
 		CouponDetailDto responseDto = new CouponDetailDto();
 		
 		try {
-		OfferDetail offerDetail = offerDetailRepository.findByCouponCode(availAndSaveCpnUsgDto.getCouponCode());
-		
+		OfferDetail offerDetail = offerDetailRepository.findOfferDetail(availAndSaveCpnUsgDto.getCouponCode());
+		if(offerDetail == null) {
+			responseDto.setStatus(ApplicationConstant.CouponNotAvailable.getStatus());
+			return responseDto;
+		}
 		CouponUsages cpnUsg = new CouponUsages();
 		cpnUsg.setBookingId(availAndSaveCpnUsgDto.getBookingId());
 		cpnUsg.setCouponCode(availAndSaveCpnUsgDto.getCouponCode());
@@ -141,7 +144,7 @@ public class OfferServiceImpl implements OfferService {
 	@Transactional
 	public void updateCouponOnBookingCancellation(Long bookingId) {
 		CouponUsages cpnUsage = cpnUsgRepository.findCouponUsagesByBookingId(bookingId);
-		OfferDetail offerDetail = offerDetailRepository.findOfferDetailByCouponCode(cpnUsage.getCouponCode());
+		OfferDetail offerDetail = offerDetailRepository.findOfferDetail(cpnUsage.getCouponCode());
 		offerDetail.setUsedCouponCount(offerDetail.getUsedCouponCount()-1);
 		offerDetail.setUsedGlobalMaxAmount(offerDetail.getUsedGlobalMaxAmount()-cpnUsage.getDiscountAmount());
 		offerDetailRepository.saveAndFlush(offerDetail);
