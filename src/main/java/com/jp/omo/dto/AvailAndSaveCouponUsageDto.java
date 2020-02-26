@@ -11,6 +11,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class AvailAndSaveCouponUsageDto {
 
+	private String offerType;//"offerType":"couponCode" or "referralCode"
 	private String couponCode;
 	private Long userId;
 	private Long bookingId;

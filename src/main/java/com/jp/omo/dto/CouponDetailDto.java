@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CouponDetailDto {
+	private String OfferType;
 	private String couponCode;
 	//private Long userId;
 	private double couponValue;

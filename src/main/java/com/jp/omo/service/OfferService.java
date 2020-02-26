@@ -2,6 +2,7 @@ package com.jp.omo.service;
 
 import com.jp.omo.dto.AvailAndSaveCouponUsageDto;
 import com.jp.omo.dto.CouponDetailDto;
+import com.jp.omo.dto.JpResponseModel;
 import com.jp.omo.dto.VerifyCouponDto;
 
 /**
@@ -17,18 +18,20 @@ public interface OfferService {
 	 * @param couponCode
 	 * @return
 	 */
-	CouponDetailDto validateCouponService(long chefId, VerifyCouponDto verifyCouponDto);
+	JpResponseModel validateCouponService(long chefId, VerifyCouponDto verifyCouponDto);
 	
 	/**
 	 * 
 	 * @param availAndSaveCpnUsgDto
 	 * @return status of avail coupon success or Failed
 	 */
-	CouponDetailDto availCouponSaveService(Long userId ,AvailAndSaveCouponUsageDto availAndSaveCpnUsgDto);
+	JpResponseModel availCouponSaveService(Long userId ,AvailAndSaveCouponUsageDto availAndSaveCpnUsgDto);
 	
 	/**
 	 * 
 	 * @param bookingId
 	 */
-	void updateCouponOnBookingCancellation (Long bookingId);
+	JpResponseModel updateCouponOnBookingCancellation (Long bookingId);
+	
+	
 }

@@ -13,4 +13,5 @@ public class VerifyCouponDto {
 
 	private String couponCode;
 	private LocalDateTime availDate;
+	private double minBookingAmount;
 }

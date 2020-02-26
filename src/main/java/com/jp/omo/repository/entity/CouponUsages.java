@@ -29,7 +29,7 @@ public class CouponUsages  implements Serializable {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = "used_coupon_id")
-	private Long used_coupon_id;
+	private Long usedCouponId;
 	
 	@Column(name = "user_id")
 	private Long userId;
@@ -40,16 +40,16 @@ public class CouponUsages  implements Serializable {
 	@Column(name = "discount_amount")
 	private Double discountAmount;
 	
-	@Column(name = "used_datetime")
+	@Column(name = "used_datetime") 
 	private LocalDateTime usedDatetime;
-	
+	 
 	@Column(name = "coupon_code")
 	private String couponCode;
 	
 	@Column(name = "coupon_id")
 	private Long couponId;
-	                
-	@Column(name = "softdeleteflag")
-	private Byte softDeleteFlag;
 	
+	@Column(name = "softdeleteflag") 
+	private Byte softDeleteFlag;
+	 
 }

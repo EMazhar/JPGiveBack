@@ -12,14 +12,17 @@ import org.springframework.stereotype.Service;
 
 import com.jp.omo.component.ApplicationConstant;
 import com.jp.omo.component.OfferValidatorComponent;
+import com.jp.omo.component.OfrmoUtility;
 import com.jp.omo.dto.AvailAndSaveCouponUsageDto;
 import com.jp.omo.dto.CouponDetailDto;
+import com.jp.omo.dto.JpResponseModel;
 import com.jp.omo.dto.VerifyCouponDto;
 import com.jp.omo.repository.CouponUsageRepository;
 import com.jp.omo.repository.OfferDetailRepository;
 import com.jp.omo.repository.entity.CouponUsages;
 import com.jp.omo.repository.entity.OfferDetail;
 import com.jp.omo.service.OfferService;
+import com.jp.omo.service.ReferralService;
 
 @Service
 public class OfferServiceImpl implements OfferService {
@@ -30,24 +33,30 @@ public class OfferServiceImpl implements OfferService {
 	private ModelMapper modelMapper;
 	@Autowired
 	private CouponUsageRepository cpnUsgRepository;
-	
-	
-	//1. active/Inactive
-	//2. date
-	//3. count of user usage
-	//4. on total count
-	//5. total golable amount
+	@Autowired
+	private OfrmoUtility ofrmoUtility;
+	@Autowired
+	private ReferralService referralService;
+
+	// 1. active/Inactive
+	// 2. date
+	// 3. count of user usage
+	// 4. on total count
+	// 5. total golable amount
 	@Override
 	@Transactional
-	public CouponDetailDto validateCouponService(long userId, VerifyCouponDto verifyCouponDto) {
+	public JpResponseModel validateCouponService(long userId, VerifyCouponDto verifyCouponDto) {
 		CouponDetailDto responseDto = new CouponDetailDto();
+		
 		try {
 			OfferDetail offerDetail = offerDetailRepository.findOfferDetail(verifyCouponDto.getCouponCode());
-			
-			if(offerDetail == null) {
-				throw new Exception("there is no record found in the table with this coupon code "+verifyCouponDto.getCouponCode());
+
+			if (offerDetail == null) {
+				return referralService.validateReferalCode(userId, verifyCouponDto);// call referral flow
+				//responseDto.setStatus(ApplicationConstant.CouponNotFound.name());
+				//return ofrmoUtility.prepareResponse(responseDto, "There is no such coupon available.", true);
 			}
-			List<CouponUsages> cpnUsages = cpnUsgRepository.findAllCouponUsagesByUserIdAndCouponCode(userId,
+			List<CouponUsages> cpnUsages = cpnUsgRepository.findAllUedCouponForUser(userId,
 					verifyCouponDto.getCouponCode());
 			LocalDateTime offerStartTime = offerDetail.getStartTime();
 			LocalDateTime offerEndTime = offerDetail.getEndTime();
@@ -56,16 +65,17 @@ public class OfferServiceImpl implements OfferService {
 			// active code
 			System.out.println("true");
 			if ((cpnUsages.size() < offerDetail.getUserMaxCountToAvailCpn())) {
-				
+
 				if (offerDetail.getTotalCouponCount() > offerDetail.getUsedCouponCount()) {
-					
-					if (offerStartTime.equals(verifyCouponDto.getAvailDate()) || verifyCouponDto.getAvailDate().isAfter(offerStartTime)
-							
-							&& (verifyCouponDto.getAvailDate().isBefore(offerEndTime)
-									|| offerEndTime.equals(verifyCouponDto.getAvailDate()))) {
+
+					if (offerStartTime.equals(verifyCouponDto.getAvailDate())
+							|| verifyCouponDto.getAvailDate().isAfter(offerStartTime)
+
+									&& (verifyCouponDto.getAvailDate().isBefore(offerEndTime)
+											|| offerEndTime.equals(verifyCouponDto.getAvailDate()))) {
 						Integer statusInCode = new Integer(ApplicationConstant.Active.getStatus());
 						if (offerDetail.getStatus().equals(statusInCode)) {
-							
+
 							responseDto = modelMapper.map(offerDetail, CouponDetailDto.class);
 							responseDto.setStatus(ApplicationConstant.Applicable.name());
 							if (offerDetail.getDiscountType() == 1) {
@@ -76,79 +86,88 @@ public class OfferServiceImpl implements OfferService {
 
 						} else {
 							responseDto.setStatus(ApplicationConstant.Inactive.name());
-							
+
 						}
-					}else {
+					} else {
 						responseDto.setStatus(ApplicationConstant.CouponExpired.name());
 					}
 
 				} else {
 					responseDto.setStatus(ApplicationConstant.CouponCountExhausted.name());
-					
+
 				}
 
 			} else {
 				responseDto.setStatus(ApplicationConstant.UserUsageLimitExceeded.name());
 			}
-			return responseDto;
-		}catch(Exception e) {
+			responseDto.setOfferType("coupon");
+			return ofrmoUtility.prepareResponse(responseDto, "couponCode", true);
+		} catch (Exception e) {
 			e.printStackTrace();
-			responseDto.setStatus(ApplicationConstant.CouponNotFound.name());
-			return responseDto;
+
+			return ofrmoUtility.prepareResponse(responseDto, "couponCode", false);
 		}
-}
-	
+	}
 
 	@Transactional
 	@Override
-	public CouponDetailDto availCouponSaveService(Long userId,AvailAndSaveCouponUsageDto availAndSaveCpnUsgDto) {
+	public JpResponseModel availCouponSaveService(Long userId,AvailAndSaveCouponUsageDto availAndSaveCpnUsgDto) {
 		CouponDetailDto responseDto = new CouponDetailDto();
-		
+		responseDto.setOfferType("coupon");
 		try {
 		OfferDetail offerDetail = offerDetailRepository.findOfferDetail(availAndSaveCpnUsgDto.getCouponCode());
 		if(offerDetail == null) {
 			responseDto.setStatus(ApplicationConstant.CouponNotAvailable.getStatus());
-			return responseDto;
+			return ofrmoUtility.prepareResponse(responseDto,"",true);
+			
 		}
 		CouponUsages cpnUsg = new CouponUsages();
 		cpnUsg.setBookingId(availAndSaveCpnUsgDto.getBookingId());
 		cpnUsg.setCouponCode(availAndSaveCpnUsgDto.getCouponCode());
 		cpnUsg.setUserId(userId);
 		cpnUsg.setCouponId(offerDetail.getCouponId());
-		
+		cpnUsg.setUsedDatetime(LocalDateTime.now());
 		cpnUsg.setDiscountAmount(availAndSaveCpnUsgDto.getDiscountAmount());
-	
-		cpnUsgRepository.saveAndFlush(cpnUsg);
+		cpnUsg.setSoftDeleteFlag((byte)0);
 		
-		offerDetail.setUsedCouponCount(offerDetail.getUsedCouponCount()+1);
+		cpnUsgRepository.saveAndFlush(cpnUsg);
+		int usedCpnCount = (int)(offerDetail.getUsedCouponCount())+1;
+		offerDetail.setUsedCouponCount(usedCpnCount);
 		offerDetail.setUsedGlobalMaxAmount(offerDetail.getUsedGlobalMaxAmount()+availAndSaveCpnUsgDto.getDiscountAmount());
 		offerDetailRepository.updateOfferDetail(offerDetail.getUsedGlobalMaxAmount(),
 				offerDetail.getUsedCouponCount(),availAndSaveCpnUsgDto.getCouponCode());
 		
 		responseDto.setStatus(ApplicationConstant.CouponAvailSuccessfull.getStatus());
+		return ofrmoUtility.prepareResponse(responseDto, "", true);
 		
 		}catch(Exception exception) {
 			exception.printStackTrace();
 			responseDto.setStatus(ApplicationConstant.CouponAvailfailed.getStatus());
+			return ofrmoUtility.prepareResponse(responseDto, "", false);
 		}
-		return responseDto;
+		
 	}
-	
+
 	@Bean
 	public ModelMapper getModelMapper() {
 		return new ModelMapper();
 	}
 
-
 	@Override
 	@Transactional
-	public void updateCouponOnBookingCancellation(Long bookingId) {
+	public JpResponseModel updateCouponOnBookingCancellation(Long bookingId) {
+		try {
 		CouponUsages cpnUsage = cpnUsgRepository.findCouponUsagesByBookingId(bookingId);
 		OfferDetail offerDetail = offerDetailRepository.findOfferDetail(cpnUsage.getCouponCode());
-		offerDetail.setUsedCouponCount(offerDetail.getUsedCouponCount()-1);
-		offerDetail.setUsedGlobalMaxAmount(offerDetail.getUsedGlobalMaxAmount()-cpnUsage.getDiscountAmount());
+		offerDetail.setUsedCouponCount(offerDetail.getUsedCouponCount() - 1);
+		offerDetail.setUsedGlobalMaxAmount(offerDetail.getUsedGlobalMaxAmount() - cpnUsage.getDiscountAmount());
 		offerDetailRepository.saveAndFlush(offerDetail);
 		cpnUsage.setSoftDeleteFlag((byte) 1);
 		cpnUsgRepository.save(cpnUsage);
+		return ofrmoUtility.prepareResponse(null, "", true);
+	}catch(Exception e) {
+		return ofrmoUtility.prepareResponse(null,"",false);
 	}
+	}
+	
 }

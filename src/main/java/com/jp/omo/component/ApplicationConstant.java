@@ -2,11 +2,15 @@ package com.jp.omo.component;
 
 public enum ApplicationConstant {
 	
+	OFRMO_SUCCESSFUL_STATUS("1"),
+	OFRMO_FIALED_STATUS("2"),
+	
 	Active("1"),
 	
 	CouponAvailSuccessfull("Successful"),
 	CouponAvailfailed("Failed"),
 	CouponNotAvailable("Unavailable Coupon"),
+	CouponVerificationFailed("verification Failed"),
 	
 	
 	Percentage("1"),
@@ -18,9 +22,6 @@ public enum ApplicationConstant {
 	CouponCountExhausted("4"),
 	CouponExpired("5"),
 	CouponNotFound("6");
-	
-	
-	
 	
 	public String value;
 	
